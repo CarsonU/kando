@@ -219,6 +219,25 @@ export function useBoard() {
     return id;
   }, []);
 
+  /** Rename and/or recolor an existing tag. Empty names are ignored. */
+  const updateTag = useCallback(
+    (tagId: string, patch: { name?: string; color?: string }) => {
+      setState((prev) => {
+        const existing = prev.tags[tagId];
+        if (!existing) return prev;
+        const next = { ...existing };
+        if (patch.name !== undefined) {
+          const trimmed = patch.name.trim();
+          if (!trimmed) return prev; // don't allow blanking a tag name
+          next.name = trimmed;
+        }
+        if (patch.color !== undefined) next.color = patch.color;
+        return { ...prev, tags: { ...prev.tags, [tagId]: next } };
+      });
+    },
+    [],
+  );
+
   /** Delete a tag from the palette and remove it from every card. */
   const deleteTag = useCallback((tagId: string) => {
     setState((prev) => {
@@ -290,6 +309,7 @@ export function useBoard() {
     moveCard,
     setCardDueDate,
     createTag,
+    updateTag,
     deleteTag,
     toggleCardTag,
     addColumn,
