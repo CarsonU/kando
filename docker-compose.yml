@@ -1,0 +1,25 @@
+services:
+  # Hot-reload development server (Vite). Source is bind-mounted so edits on the
+  # host reload instantly inside the container.
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/app
+      # Keep the image's node_modules; don't let the host mount shadow it.
+      - /app/node_modules
+    environment:
+      # Belt-and-suspenders with vite.config.ts for file watching in Docker.
+      - CHOKIDAR_USEPOLLING=true
+
+  # Production build served as static files by nginx.
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    restart: unless-stopped

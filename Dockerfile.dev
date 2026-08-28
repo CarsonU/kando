@@ -1,0 +1,13 @@
+# syntax=docker/dockerfile:1
+
+# Development image: runs the Vite dev server with hot-module reload.
+# Source is bind-mounted at runtime (see docker-compose.yml), so we only bake
+# in the dependencies here.
+FROM node:22-alpine
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+RUN npm ci
+
+EXPOSE 5173
+CMD ["npm", "run", "dev"]
