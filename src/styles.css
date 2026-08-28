@@ -128,6 +128,31 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/* Sync indicator: a small dot before the label, colored by connection state. */
+.app-header__status::before {
+  content: '';
+  display: inline-block;
+  width: 0.5em;
+  height: 0.5em;
+  margin-right: 0.4em;
+  border-radius: 50%;
+  background: currentColor;
+  vertical-align: baseline;
+}
+
+.app-header__status--synced {
+  color: #30a46c;
+}
+
+.app-header__status--saving,
+.app-header__status--connecting {
+  color: #ffb224;
+}
+
+.app-header__status--offline {
+  color: #e5484d;
+}
+
 .app-main {
   flex: 1;
   min-height: 0;

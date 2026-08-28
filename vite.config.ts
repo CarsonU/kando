@@ -8,6 +8,14 @@ export default defineConfig({
     host: true, // bind 0.0.0.0 so the container's port is reachable from the host
     port: 5173,
     strictPort: true,
+    proxy: {
+      // Forward API calls to the persistence backend. In Docker the target is
+      // the `server` service (set via API_PROXY_TARGET); locally it's localhost.
+      '/api': {
+        target: process.env.API_PROXY_TARGET || 'http://localhost:3001',
+        changeOrigin: true,
+      },
+    },
     watch: {
       // Polling is needed for reliable file-change detection inside Docker on macOS.
       usePolling: true,

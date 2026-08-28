@@ -1,5 +1,12 @@
 import Board from './components/Board';
-import { useBoard } from './useBoard';
+import { useBoard, type SyncStatus } from './useBoard';
+
+const STATUS_LABEL: Record<SyncStatus, string> = {
+  connecting: 'connecting…',
+  synced: 'synced',
+  saving: 'saving…',
+  offline: 'offline · local only',
+};
 
 export default function App() {
   const api = useBoard();
@@ -13,7 +20,10 @@ export default function App() {
           <h1 className="app-header__title">Kando</h1>
         </div>
         <p className="app-header__meta">
-          {api.state.columns.length} columns &middot; {cardCount} cards &middot; saved locally
+          {api.state.columns.length} columns &middot; {cardCount} cards &middot;{' '}
+          <span className={`app-header__status app-header__status--${api.status}`}>
+            {STATUS_LABEL[api.status]}
+          </span>
         </p>
       </header>
       <main className="app-main">

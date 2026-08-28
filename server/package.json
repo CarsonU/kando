@@ -1,0 +1,10 @@
+{
+  "name": "kando-server",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Tiny dependency-free persistence API for the Kando board.",
+  "scripts": {
+    "start": "node index.mjs"
+  }
+}

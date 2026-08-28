@@ -1,10 +1,24 @@
 services:
+  # Persistence backend: stores the shared board so every device sees the same
+  # data. Board is written to a named volume so it survives container restarts.
+  server:
+    build:
+      context: ./server
+    environment:
+      - PORT=3001
+      - DATA_DIR=/data
+    volumes:
+      - kando-data:/data
+    restart: unless-stopped
+
   # Hot-reload development server (Vite). Source is bind-mounted so edits on the
   # host reload instantly inside the container.
   dev:
     build:
       context: .
       dockerfile: Dockerfile.dev
+    depends_on:
+      - server
     ports:
       - "5173:5173"
     volumes:
@@ -14,12 +28,20 @@ services:
     environment:
       # Belt-and-suspenders with vite.config.ts for file watching in Docker.
       - CHOKIDAR_USEPOLLING=true
+      # Where Vite proxies /api during development.
+      - API_PROXY_TARGET=http://server:3001
 
-  # Production build served as static files by nginx.
+  # Production build served as static files by nginx, which proxies /api to the
+  # backend service.
   web:
     build:
       context: .
       dockerfile: Dockerfile
+    depends_on:
+      - server
     ports:
       - "8080:80"
     restart: unless-stopped
+
+volumes:
+  kando-data:

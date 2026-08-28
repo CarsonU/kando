@@ -1,17 +1,120 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { BoardState } from './types';
 import { loadBoard, makeId, saveBoard } from './storage';
+import { fetchBoard, fetchVersion, saveBoardRemote } from './api';
+
+/** Connection state to the persistence server, surfaced in the header. */
+export type SyncStatus = 'connecting' | 'synced' | 'saving' | 'offline';
+
+const SAVE_DEBOUNCE_MS = 500;
+const POLL_INTERVAL_MS = 2000;
 
 /**
  * Owns the entire board state and exposes typed actions to mutate it.
- * Every change is persisted to localStorage via an effect on `state`.
+ *
+ * The server is the source of truth: on mount we paint from the localStorage
+ * cache (instant), then hydrate from the server. Local changes are cached to
+ * localStorage immediately and pushed to the server (debounced). A poll pulls
+ * in changes made on other devices. localStorage is only an offline cache — if
+ * the server is unreachable the app keeps working locally and re-syncs later.
  */
 export function useBoard() {
   const [state, setState] = useState<BoardState>(() => loadBoard());
+  const [status, setStatus] = useState<SyncStatus>('connecting');
 
+  // Sync bookkeeping (refs so they don't trigger renders).
+  const versionRef = useRef(-1); // last server version we've seen
+  const dirtyRef = useRef(false); // local changes not yet confirmed saved
+  const savingRef = useRef(false); // a PUT is in flight
+  const hydratedRef = useRef(false); // initial server load has settled
+  const skipSaveRef = useRef(false); // next state change came FROM the server
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  /** Apply a board received from the server without echoing it back as a save. */
+  const applyRemote = useCallback((board: BoardState, version: number) => {
+    skipSaveRef.current = true;
+    versionRef.current = version;
+    dirtyRef.current = false;
+    saveBoard(board); // keep the offline cache warm
+    setState(board);
+  }, []);
+
+  // Initial hydrate from the server (localStorage has already painted).
   useEffect(() => {
-    saveBoard(state);
+    let cancelled = false;
+    (async () => {
+      try {
+        const { version, board } = await fetchBoard();
+        if (cancelled) return;
+        if (board) {
+          applyRemote(board, version); // server wins on load
+        } else {
+          // Server has no board yet — seed it from what we have locally.
+          const v = await saveBoardRemote(state);
+          if (cancelled) return;
+          versionRef.current = v;
+        }
+        setStatus('synced');
+      } catch {
+        if (!cancelled) setStatus('offline');
+      } finally {
+        hydratedRef.current = true;
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // Runs once on mount; `state` here is the initial cached/default board.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Persist changes: cache locally right away, then push to the server (debounced).
+  useEffect(() => {
+    if (skipSaveRef.current) {
+      // This change came from applyRemote — don't send it straight back.
+      skipSaveRef.current = false;
+      return;
+    }
+    saveBoard(state); // always keep the local cache current
+    if (!hydratedRef.current) return; // wait until we know the server's state
+
+    dirtyRef.current = true;
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(async () => {
+      savingRef.current = true;
+      setStatus((s) => (s === 'offline' ? s : 'saving'));
+      try {
+        versionRef.current = await saveBoardRemote(state);
+        dirtyRef.current = false;
+        setStatus('synced');
+      } catch {
+        setStatus('offline'); // leave dirty set so a later change retries
+      } finally {
+        savingRef.current = false;
+      }
+    }, SAVE_DEBOUNCE_MS);
   }, [state]);
+
+  // Poll for changes made on other devices and pull them in.
+  useEffect(() => {
+    const id = setInterval(async () => {
+      // Don't clobber unsaved local edits mid-flight.
+      if (dirtyRef.current || savingRef.current || !hydratedRef.current) return;
+      try {
+        const version = await fetchVersion();
+        if (version !== versionRef.current) {
+          const remote = await fetchBoard();
+          if (remote.board && !dirtyRef.current && !savingRef.current) {
+            applyRemote(remote.board, remote.version);
+          }
+        }
+        setStatus((s) => (s === 'offline' ? 'synced' : s));
+      } catch {
+        setStatus('offline');
+      }
+    }, POLL_INTERVAL_MS);
+    return () => clearInterval(id);
+  }, [applyRemote]);
 
   const addCard = useCallback((columnId: string, title: string) => {
     const trimmed = title.trim();
@@ -180,6 +283,7 @@ export function useBoard() {
 
   return {
     state,
+    status,
     addCard,
     updateCard,
     deleteCard,
