@@ -16,6 +16,9 @@ interface ColumnProps {
   setDropTarget: (target: DropTarget | null) => void;
   onCardDragStart: (cardId: string, fromColumnId: string) => void;
   onCardDragEnd: () => void;
+  isColumnDragging: boolean;
+  onColumnDragStart: (columnId: string) => void;
+  onColumnDragEnd: () => void;
 }
 
 export default function Column({
@@ -26,6 +29,9 @@ export default function Column({
   setDropTarget,
   onCardDragStart,
   onCardDragEnd,
+  isColumnDragging,
+  onColumnDragStart,
+  onColumnDragEnd,
 }: ColumnProps) {
   const listRef = useRef<HTMLDivElement>(null);
   const [adding, setAdding] = useState(false);
@@ -111,11 +117,29 @@ export default function Column({
 
   return (
     <section
-      className={`column${isDropCol ? ' column--drop' : ''}`}
+      className={`column${isDropCol ? ' column--drop' : ''}${
+        isColumnDragging ? ' column--dragging' : ''
+      }`}
+      data-column-id={column.id}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
     >
       <header className="column__header">
+        <div
+          className="column__grip"
+          draggable
+          role="button"
+          aria-label="Drag to reorder column"
+          title="Drag to reorder"
+          onDragStart={(e) => {
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', column.id);
+            onColumnDragStart(column.id);
+          }}
+          onDragEnd={onColumnDragEnd}
+        >
+          <GripIcon />
+        </div>
         {renaming ? (
           <input
             ref={renameRef}
@@ -174,10 +198,9 @@ export default function Column({
                 card={card}
                 columnId={column.id}
                 isDragging={dragging?.cardId === cardId}
+                api={api}
                 onDragStart={onCardDragStart}
                 onDragEnd={onCardDragEnd}
-                onUpdate={api.updateCard}
-                onDelete={api.deleteCard}
               />
             </div>
           );
@@ -213,5 +236,18 @@ export default function Column({
         </button>
       )}
     </section>
+  );
+}
+
+function GripIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <circle cx="9" cy="6" r="1.6" />
+      <circle cx="15" cy="6" r="1.6" />
+      <circle cx="9" cy="12" r="1.6" />
+      <circle cx="15" cy="12" r="1.6" />
+      <circle cx="9" cy="18" r="1.6" />
+      <circle cx="15" cy="18" r="1.6" />
+    </svg>
   );
 }

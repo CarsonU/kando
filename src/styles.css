@@ -267,10 +267,10 @@ body {
 .card {
   position: relative;
   display: flex;
-  align-items: flex-start;
+  flex-direction: column;
   gap: 6px;
   margin: 4px 0;
-  padding: 9px 10px 9px 12px;
+  padding: 9px 11px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
@@ -293,6 +293,18 @@ body {
   opacity: 0.4;
 }
 
+.card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.card__body {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
 .card__title {
   flex: 1;
   font-size: 0.875rem;
@@ -302,19 +314,313 @@ body {
   word-break: break-word;
 }
 
-.card__delete {
+.card__actions {
+  flex: none;
+  display: flex;
+  gap: 1px;
   opacity: 0;
-  margin: -3px -3px 0 0;
+  transition: opacity 0.12s ease;
 }
 
-.card:hover .card__delete,
-.card__delete:focus-visible {
+.card:hover .card__actions,
+.card:focus-within .card__actions {
   opacity: 1;
 }
 
-.card__delete:hover {
+.card__action {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.05rem;
+  line-height: 1;
+  color: var(--text-faint);
+  background: none;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: color 0.12s ease, background 0.12s ease;
+}
+
+.card__action:hover {
+  color: var(--text);
+  background: var(--surface-hover);
+}
+
+.card__action--danger:hover {
+  color: var(--danger);
+}
+
+.card__footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* -------------------------------------------------------------- tag pills */
+.tag-pill {
+  display: inline-flex;
+  align-items: center;
+  height: 19px;
+  padding: 0 8px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  border-radius: var(--radius-pill);
+  color: var(--tag);
+  background: color-mix(in srgb, var(--tag) 16%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--tag) 32%, transparent);
+  white-space: nowrap;
+}
+
+@media (prefers-color-scheme: dark) {
+  .tag-pill {
+    color: color-mix(in srgb, var(--tag) 72%, white);
+    background: color-mix(in srgb, var(--tag) 26%, var(--surface));
+    border-color: color-mix(in srgb, var(--tag) 45%, transparent);
+  }
+}
+
+/* ------------------------------------------------------------- due pills */
+.due-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 22px;
+  padding: 0 9px;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 600;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  background: var(--surface-hover);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+}
+
+.due-pill svg {
+  opacity: 0.85;
+}
+
+.due-pill--overdue {
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 40%, transparent);
+  background: color-mix(in srgb, var(--danger) 12%, var(--surface));
+}
+
+.due-pill--today {
+  color: var(--accent-strong);
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  background: var(--accent-soft);
+}
+
+.card__date-edit {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.card__date-input {
+  font: inherit;
+  font-size: 0.76rem;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  border-radius: 7px;
+  padding: 3px 6px;
+  outline: none;
+  color-scheme: light dark;
+}
+
+.card__date-clear {
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 6px;
+}
+
+.card__date-clear:hover {
   color: var(--danger);
   background: var(--surface-hover);
+}
+
+/* ------------------------------------------------------------ tag picker */
+.tag-picker {
+  position: fixed;
+  z-index: 50;
+  width: 232px;
+  padding: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lift);
+  cursor: default;
+}
+
+.tag-picker__heading {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-faint);
+  margin-bottom: 8px;
+}
+
+.tag-picker__list {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 168px;
+  overflow-y: auto;
+}
+
+.tag-picker__row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.tag-picker__option {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  font: inherit;
+  font-size: 0.82rem;
+  color: var(--text);
+  background: none;
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.tag-picker__option:hover {
+  background: var(--surface-hover);
+}
+
+.tag-picker__swatch {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+}
+
+.tag-picker__name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tag-picker__check {
+  flex: none;
+  color: var(--accent-strong);
+  font-weight: 700;
+  width: 12px;
+}
+
+.tag-picker__remove {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  color: var(--text-faint);
+  background: none;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.tag-picker__remove:hover {
+  color: var(--danger);
+  background: var(--surface-hover);
+}
+
+.tag-picker__new {
+  border-top: 1px solid var(--border);
+  padding-top: 9px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tag-picker__input {
+  width: 100%;
+  font: inherit;
+  font-size: 0.82rem;
+  color: var(--text);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 6px 8px;
+  outline: none;
+}
+
+.tag-picker__input:focus {
+  border-color: var(--accent);
+}
+
+.tag-picker__swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag-picker__color {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.1s ease;
+}
+
+.tag-picker__color:hover {
+  transform: scale(1.1);
+}
+
+.tag-picker__color.is-selected {
+  border-color: var(--text);
+  box-shadow: 0 0 0 2px var(--surface) inset;
+}
+
+.tag-picker__add {
+  align-self: flex-start;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #fff;
+  background: var(--accent);
+  border: none;
+  border-radius: 7px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.tag-picker__add:hover:not(:disabled) {
+  background: var(--accent-strong);
+}
+
+.tag-picker__add:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .card--editing {
@@ -343,6 +649,43 @@ body {
 .drop-indicator {
   height: 3px;
   margin: 3px 2px;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+/* ----------------------------------------------------- column reordering */
+.column__grip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 22px;
+  margin-left: -4px;
+  color: var(--text-faint);
+  cursor: grab;
+  border-radius: 5px;
+}
+
+.column__grip:hover {
+  color: var(--text-muted);
+  background: var(--surface-hover);
+}
+
+.column__grip:active {
+  cursor: grabbing;
+}
+
+.column--dragging {
+  opacity: 0.5;
+}
+
+.column-drop-indicator {
+  flex: none;
+  align-self: stretch;
+  width: 3px;
+  margin: 0 -7px;
   border-radius: var(--radius-pill);
   background: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-soft);

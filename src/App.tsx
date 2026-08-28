@@ -10,7 +10,7 @@ export default function App() {
       <header className="app-header">
         <div className="app-header__brand">
           <span className="app-header__mark" aria-hidden="true" />
-          <h1 className="app-header__title">Kanban</h1>
+          <h1 className="app-header__title">Kando</h1>
         </div>
         <p className="app-header__meta">
           {api.state.columns.length} columns &middot; {cardCount} cards &middot; saved locally
