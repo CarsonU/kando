@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Column as ColumnType, DragSource } from '../types';
 import type { BoardApi } from '../useBoard';
 import Card from './Card';
@@ -8,9 +8,19 @@ interface DropTarget {
   index: number;
 }
 
+/** Order two ISO 'YYYY-MM-DD' due dates ascending; undated cards sort last. */
+function compareDue(a?: string, b?: string): number {
+  if (a && b) return a < b ? -1 : a > b ? 1 : 0;
+  if (a) return -1;
+  if (b) return 1;
+  return 0;
+}
+
 interface ColumnProps {
   column: ColumnType;
   api: BoardApi;
+  sortByDue: boolean;
+  filterTagIds: string[];
   dragging: DragSource | null;
   dropTarget: DropTarget | null;
   setDropTarget: (target: DropTarget | null) => void;
@@ -24,6 +34,8 @@ interface ColumnProps {
 export default function Column({
   column,
   api,
+  sortByDue,
+  filterTagIds,
   dragging,
   dropTarget,
   setDropTarget,
@@ -52,10 +64,32 @@ export default function Column({
     }
   }, [renaming]);
 
+  // The ids actually rendered: archived cards drop out (they're already removed
+  // from cardIds, this is a guard), an active tag filter narrows to cards with a
+  // matching tag, and "sort by due date" reorders the visible set. This is a
+  // view transform only — column.cardIds (the saved order) is never mutated.
+  const visibleIds = useMemo(() => {
+    let ids = column.cardIds.filter((id) => {
+      const c = api.state.cards[id];
+      return c && !c.archivedAt;
+    });
+    if (filterTagIds.length > 0) {
+      ids = ids.filter((id) =>
+        api.state.cards[id].tagIds.some((t) => filterTagIds.includes(t)),
+      );
+    }
+    if (sortByDue) {
+      ids = [...ids].sort((a, b) =>
+        compareDue(api.state.cards[a].dueDate, api.state.cards[b].dueDate),
+      );
+    }
+    return ids;
+  }, [column.cardIds, api.state.cards, filterTagIds, sortByDue]);
+
   /**
    * Compute where the dragged card should land, as an index into this column's
-   * card list *excluding* the card being dragged. Counts how many non-dragging
-   * cards have their vertical midpoint above the cursor.
+   * *visible* card list *excluding* the card being dragged. Counts how many
+   * non-dragging cards have their vertical midpoint above the cursor.
    */
   function computeIndex(clientY: number): number {
     const container = listRef.current;
@@ -84,8 +118,17 @@ export default function Column({
   function handleDrop(e: React.DragEvent) {
     if (!dragging) return;
     e.preventDefault();
-    const index = computeIndex(e.clientY);
-    api.moveCard(dragging.cardId, column.id, index);
+    // computeIndex is relative to the visible list; translate it back to an
+    // index into the full cardIds array so filtering/sorting can't misplace the
+    // card, by locating the visible card it should land in front of.
+    const visibleIndex = computeIndex(e.clientY);
+    const visibleNonDragging = visibleIds.filter((id) => id !== dragging.cardId);
+    const anchorId = visibleNonDragging[visibleIndex] ?? null;
+    const fullNonDragging = column.cardIds.filter((id) => id !== dragging.cardId);
+    const realIndex = anchorId
+      ? Math.max(0, fullNonDragging.indexOf(anchorId))
+      : fullNonDragging.length;
+    api.moveCard(dragging.cardId, column.id, realIndex);
     onCardDragEnd();
   }
 
@@ -109,9 +152,9 @@ export default function Column({
 
   // Anchor card that the drop indicator should render before (null => at end).
   const isDropCol = dropTarget?.columnId === column.id;
-  const nonDraggingIds = column.cardIds.filter((id) => id !== dragging?.cardId);
+  const visibleNonDragging = visibleIds.filter((id) => id !== dragging?.cardId);
   const anchorId =
-    isDropCol && dropTarget ? nonDraggingIds[dropTarget.index] ?? null : undefined;
+    isDropCol && dropTarget ? visibleNonDragging[dropTarget.index] ?? null : undefined;
 
   const dropIndicator = <div className="drop-indicator" aria-hidden="true" />;
 
@@ -170,7 +213,18 @@ export default function Column({
             {column.title}
           </button>
         )}
-        <span className="column__count">{column.cardIds.length}</span>
+        <span className="column__count">{visibleIds.length}</span>
+        {column.cardIds.length > 0 && (
+          <button
+            type="button"
+            className="column__archive-all"
+            aria-label="Archive all cards in column"
+            title="Archive all cards"
+            onClick={() => api.archiveAllInColumn(column.id)}
+          >
+            <ArchiveIcon />
+          </button>
+        )}
         <button
           type="button"
           className="column__delete"
@@ -188,7 +242,7 @@ export default function Column({
       </header>
 
       <div className="column__list" ref={listRef}>
-        {column.cardIds.map((cardId) => {
+        {visibleIds.map((cardId) => {
           const card = api.state.cards[cardId];
           if (!card) return null;
           return (
@@ -248,6 +302,16 @@ function GripIcon() {
       <circle cx="15" cy="12" r="1.6" />
       <circle cx="9" cy="18" r="1.6" />
       <circle cx="15" cy="18" r="1.6" />
+    </svg>
+  );
+}
+
+function ArchiveIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="3" y="4" width="18" height="4" rx="1" />
+      <path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8" />
+      <path d="M10 12h4" />
     </svg>
   );
 }

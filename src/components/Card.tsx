@@ -163,6 +163,15 @@ export default function Card({
           </button>
           <button
             type="button"
+            className="card__action"
+            aria-label="Archive card"
+            title="Archive"
+            onClick={() => api.archiveCard(card.id)}
+          >
+            <ArchiveIcon />
+          </button>
+          <button
+            type="button"
             className="card__action card__action--danger"
             aria-label="Delete card"
             title="Delete card"
@@ -245,6 +254,16 @@ function CalendarIcon() {
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <rect x="3" y="4" width="18" height="18" rx="2" />
       <path d="M16 2v4M8 2v4M3 10h18" />
+    </svg>
+  );
+}
+
+function ArchiveIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="3" y="4" width="18" height="4" rx="1" />
+      <path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8" />
+      <path d="M10 12h4" />
     </svg>
   );
 }

@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import Board from './components/Board';
+import BoardToolbar from './components/BoardToolbar';
 import Settings from './components/Settings';
+import Archive from './components/Archive';
 import { useBoard, type SyncStatus } from './useBoard';
 
 const STATUS_LABEL: Record<SyncStatus, string> = {
@@ -13,7 +15,16 @@ const STATUS_LABEL: Record<SyncStatus, string> = {
 export default function App() {
   const api = useBoard();
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const cardCount = Object.keys(api.state.cards).length;
+  const [archiveOpen, setArchiveOpen] = useState(false);
+
+  // View options (not persisted): sort cards by due date, and filter to cards
+  // carrying any of the selected tags.
+  const [sortByDue, setSortByDue] = useState(false);
+  const [filterTagIds, setFilterTagIds] = useState<string[]>([]);
+
+  const allCards = Object.values(api.state.cards);
+  const cardCount = allCards.filter((c) => !c.archivedAt).length;
+  const archivedCount = allCards.length - cardCount;
 
   return (
     <div className="app">
@@ -40,10 +51,20 @@ export default function App() {
           </button>
         </div>
       </header>
+      <BoardToolbar
+        api={api}
+        sortByDue={sortByDue}
+        onToggleSort={() => setSortByDue((v) => !v)}
+        filterTagIds={filterTagIds}
+        onFilterChange={setFilterTagIds}
+        archivedCount={archivedCount}
+        onOpenArchive={() => setArchiveOpen(true)}
+      />
       <main className="app-main">
-        <Board api={api} />
+        <Board api={api} sortByDue={sortByDue} filterTagIds={filterTagIds} />
       </main>
       {settingsOpen && <Settings api={api} onClose={() => setSettingsOpen(false)} />}
+      {archiveOpen && <Archive api={api} onClose={() => setArchiveOpen(false)} />}
     </div>
   );
 }

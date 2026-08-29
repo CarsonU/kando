@@ -253,6 +253,78 @@ export function useBoard() {
     });
   }, []);
 
+  /**
+   * Archive a card: take it off the board (remove from its column) but keep it
+   * in the cards map, tagged with when and where it was archived so it can be
+   * restored later.
+   */
+  const archiveCard = useCallback((cardId: string) => {
+    setState((prev) => {
+      const card = prev.cards[cardId];
+      if (!card || card.archivedAt) return prev;
+      const fromColumn = prev.columns.find((col) => col.cardIds.includes(cardId));
+      return {
+        ...prev,
+        cards: {
+          ...prev.cards,
+          [cardId]: {
+            ...card,
+            archivedAt: new Date().toISOString(),
+            archivedFrom: fromColumn?.id,
+          },
+        },
+        columns: prev.columns.map((col) =>
+          col.cardIds.includes(cardId)
+            ? { ...col, cardIds: col.cardIds.filter((id) => id !== cardId) }
+            : col,
+        ),
+      };
+    });
+  }, []);
+
+  /** Archive every card currently in a column, emptying it. */
+  const archiveAllInColumn = useCallback((columnId: string) => {
+    setState((prev) => {
+      const column = prev.columns.find((col) => col.id === columnId);
+      if (!column || column.cardIds.length === 0) return prev;
+      const now = new Date().toISOString();
+      const cards = { ...prev.cards };
+      for (const id of column.cardIds) {
+        const card = cards[id];
+        if (card) cards[id] = { ...card, archivedAt: now, archivedFrom: columnId };
+      }
+      return {
+        ...prev,
+        cards,
+        columns: prev.columns.map((col) =>
+          col.id === columnId ? { ...col, cardIds: [] } : col,
+        ),
+      };
+    });
+  }, []);
+
+  /**
+   * Restore an archived card to the board. It returns to the column it was
+   * archived from when that still exists, otherwise to the first column.
+   */
+  const restoreCard = useCallback((cardId: string) => {
+    setState((prev) => {
+      const card = prev.cards[cardId];
+      if (!card || !card.archivedAt) return prev;
+      const target =
+        prev.columns.find((col) => col.id === card.archivedFrom) ?? prev.columns[0];
+      if (!target) return prev; // no columns to restore into
+      const { archivedAt: _a, archivedFrom: _f, ...rest } = card;
+      return {
+        ...prev,
+        cards: { ...prev.cards, [cardId]: rest },
+        columns: prev.columns.map((col) =>
+          col.id === target.id ? { ...col, cardIds: [...col.cardIds, cardId] } : col,
+        ),
+      };
+    });
+  }, []);
+
   /** Add or remove a tag from a card. */
   const toggleCardTag = useCallback((cardId: string, tagId: string) => {
     setState((prev) => {
@@ -312,6 +384,9 @@ export function useBoard() {
     updateTag,
     deleteTag,
     toggleCardTag,
+    archiveCard,
+    archiveAllInColumn,
+    restoreCard,
     addColumn,
     renameColumn,
     deleteColumn,

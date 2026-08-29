@@ -10,9 +10,11 @@ interface DropTarget {
 
 interface BoardProps {
   api: BoardApi;
+  sortByDue: boolean;
+  filterTagIds: string[];
 }
 
-export default function Board({ api }: BoardProps) {
+export default function Board({ api, sortByDue, filterTagIds }: BoardProps) {
   // Card drag context (moving cards within/between columns).
   const [dragging, setDragging] = useState<DragSource | null>(null);
   const [dropTarget, setDropTarget] = useState<DropTarget | null>(null);
@@ -88,6 +90,8 @@ export default function Board({ api }: BoardProps) {
           <Column
             column={column}
             api={api}
+            sortByDue={sortByDue}
+            filterTagIds={filterTagIds}
             dragging={dragging}
             dropTarget={dropTarget}
             setDropTarget={setDropTarget}

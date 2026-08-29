@@ -12,6 +12,10 @@ export interface Card {
   dueDate?: string;
   /** Ids of tags (from BoardState.tags) assigned to this card. */
   tagIds: string[];
+  /** ISO timestamp set when the card is archived; absent for active cards. */
+  archivedAt?: string;
+  /** Id of the column the card was archived from (used to restore it). */
+  archivedFrom?: string;
 }
 
 export interface Column {
