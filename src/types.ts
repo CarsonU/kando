@@ -16,6 +16,8 @@ export interface Card {
   archivedAt?: string;
   /** Id of the column the card was archived from (used to restore it). */
   archivedFrom?: string;
+  /** True when the card is flagged priority; absent/false otherwise. */
+  priority?: boolean;
 }
 
 export interface Column {

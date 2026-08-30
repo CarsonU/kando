@@ -1337,3 +1337,115 @@ input:focus-visible {
   color: var(--danger);
   border-color: color-mix(in srgb, var(--danger) 45%, var(--border));
 }
+
+/* ---------------------------------------------------- view segmented toggle */
+.toolbar-segmented {
+  display: inline-flex;
+  padding: 2px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+}
+
+.toolbar-segmented__btn {
+  height: 26px;
+  padding: 0 12px;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 550;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: color 0.14s, background 0.14s, box-shadow 0.14s;
+}
+
+.toolbar-segmented__btn:hover {
+  color: var(--text);
+}
+
+.toolbar-segmented__btn.is-active {
+  color: var(--text);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+/* --------------------------------------------------------- priority cards */
+.card--priority {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+  box-shadow: inset 3px 0 0 var(--accent), var(--shadow-card);
+}
+
+.card--priority:hover {
+  border-color: color-mix(in srgb, var(--accent) 70%, var(--border));
+  box-shadow: inset 3px 0 0 var(--accent), var(--shadow-lift);
+}
+
+.card__priority-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 19px;
+  padding: 0 7px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  color: #fff;
+  background: var(--accent);
+  border-radius: var(--radius-pill);
+}
+
+.card__action--priority {
+  color: var(--accent);
+}
+
+.card__action--priority:hover {
+  color: var(--accent-strong);
+}
+
+/* --------------------------------------------------------- tag view columns */
+.column--tag {
+  cursor: default;
+}
+
+.column__title--static {
+  flex: 1;
+  min-width: 0;
+  padding: 3px 6px;
+  font-size: 0.82rem;
+  font-weight: 650;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.column__title--static.is-untagged {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.tag-column__swatch {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, #000 12%, transparent);
+}
+
+.tag-column__swatch--none {
+  background: repeating-linear-gradient(
+    45deg,
+    var(--border) 0,
+    var(--border) 3px,
+    transparent 3px,
+    transparent 6px
+  );
+}
+
+.tag-column__empty {
+  margin: 4px 2px;
+  font-size: 0.8rem;
+  color: var(--text-faint);
+}

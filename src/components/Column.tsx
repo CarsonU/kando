@@ -1,19 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Column as ColumnType, DragSource } from '../types';
 import type { BoardApi } from '../useBoard';
+import { orderCards } from '../cardOrder';
 import Card from './Card';
 
 interface DropTarget {
   columnId: string;
   index: number;
-}
-
-/** Order two ISO 'YYYY-MM-DD' due dates ascending; undated cards sort last. */
-function compareDue(a?: string, b?: string): number {
-  if (a && b) return a < b ? -1 : a > b ? 1 : 0;
-  if (a) return -1;
-  if (b) return 1;
-  return 0;
 }
 
 interface ColumnProps {
@@ -66,8 +59,9 @@ export default function Column({
 
   // The ids actually rendered: archived cards drop out (they're already removed
   // from cardIds, this is a guard), an active tag filter narrows to cards with a
-  // matching tag, and "sort by due date" reorders the visible set. This is a
-  // view transform only — column.cardIds (the saved order) is never mutated.
+  // matching tag, "sort by due date" reorders the visible set, and priority
+  // cards float to the top. This is a view transform only — column.cardIds (the
+  // saved order) is never mutated.
   const visibleIds = useMemo(() => {
     let ids = column.cardIds.filter((id) => {
       const c = api.state.cards[id];
@@ -78,12 +72,7 @@ export default function Column({
         api.state.cards[id].tagIds.some((t) => filterTagIds.includes(t)),
       );
     }
-    if (sortByDue) {
-      ids = [...ids].sort((a, b) =>
-        compareDue(api.state.cards[a].dueDate, api.state.cards[b].dueDate),
-      );
-    }
-    return ids;
+    return orderCards(ids, api.state.cards, { sortByDue });
   }, [column.cardIds, api.state.cards, filterTagIds, sortByDue]);
 
   /**

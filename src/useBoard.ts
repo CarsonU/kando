@@ -116,20 +116,23 @@ export function useBoard() {
     return () => clearInterval(id);
   }, [applyRemote]);
 
-  const addCard = useCallback((columnId: string, title: string) => {
-    const trimmed = title.trim();
-    if (!trimmed) return;
-    setState((prev) => {
-      const id = makeId();
-      return {
-        ...prev,
-        cards: { ...prev.cards, [id]: { id, title: trimmed, tagIds: [] } },
-        columns: prev.columns.map((col) =>
-          col.id === columnId ? { ...col, cardIds: [...col.cardIds, id] } : col,
-        ),
-      };
-    });
-  }, []);
+  const addCard = useCallback(
+    (columnId: string, title: string, tagIds: string[] = []) => {
+      const trimmed = title.trim();
+      if (!trimmed) return;
+      setState((prev) => {
+        const id = makeId();
+        return {
+          ...prev,
+          cards: { ...prev.cards, [id]: { id, title: trimmed, tagIds: [...tagIds] } },
+          columns: prev.columns.map((col) =>
+            col.id === columnId ? { ...col, cardIds: [...col.cardIds, id] } : col,
+          ),
+        };
+      });
+    },
+    [],
+  );
 
   const updateCard = useCallback((cardId: string, title: string) => {
     const trimmed = title.trim();
@@ -325,6 +328,18 @@ export function useBoard() {
     });
   }, []);
 
+  /** Flag or unflag a card as priority. */
+  const toggleCardPriority = useCallback((cardId: string) => {
+    setState((prev) => {
+      const card = prev.cards[cardId];
+      if (!card) return prev;
+      const next = { ...card };
+      if (card.priority) delete next.priority;
+      else next.priority = true;
+      return { ...prev, cards: { ...prev.cards, [cardId]: next } };
+    });
+  }, []);
+
   /** Add or remove a tag from a card. */
   const toggleCardTag = useCallback((cardId: string, tagId: string) => {
     setState((prev) => {
@@ -384,6 +399,7 @@ export function useBoard() {
     updateTag,
     deleteTag,
     toggleCardTag,
+    toggleCardPriority,
     archiveCard,
     archiveAllInColumn,
     restoreCard,

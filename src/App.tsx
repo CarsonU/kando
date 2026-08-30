@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Board from './components/Board';
+import TagBoard from './components/TagBoard';
 import BoardToolbar from './components/BoardToolbar';
 import Settings from './components/Settings';
 import Archive from './components/Archive';
@@ -17,8 +18,9 @@ export default function App() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [archiveOpen, setArchiveOpen] = useState(false);
 
-  // View options (not persisted): sort cards by due date, and filter to cards
-  // carrying any of the selected tags.
+  // View options (not persisted): which screen (board vs by-tag), sort cards by
+  // due date, and filter to cards carrying any of the selected tags.
+  const [viewMode, setViewMode] = useState<'board' | 'tags'>('board');
   const [sortByDue, setSortByDue] = useState(false);
   const [filterTagIds, setFilterTagIds] = useState<string[]>([]);
 
@@ -53,6 +55,8 @@ export default function App() {
       </header>
       <BoardToolbar
         api={api}
+        viewMode={viewMode}
+        onViewChange={setViewMode}
         sortByDue={sortByDue}
         onToggleSort={() => setSortByDue((v) => !v)}
         filterTagIds={filterTagIds}
@@ -61,7 +65,11 @@ export default function App() {
         onOpenArchive={() => setArchiveOpen(true)}
       />
       <main className="app-main">
-        <Board api={api} sortByDue={sortByDue} filterTagIds={filterTagIds} />
+        {viewMode === 'board' ? (
+          <Board api={api} sortByDue={sortByDue} filterTagIds={filterTagIds} />
+        ) : (
+          <TagBoard api={api} sortByDue={sortByDue} />
+        )}
       </main>
       {settingsOpen && <Settings api={api} onClose={() => setSettingsOpen(false)} />}
       {archiveOpen && <Archive api={api} onClose={() => setArchiveOpen(false)} />}

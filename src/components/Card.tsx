@@ -9,8 +9,10 @@ interface CardProps {
   columnId: string;
   isDragging: boolean;
   api: BoardApi;
-  onDragStart: (cardId: string, fromColumnId: string) => void;
-  onDragEnd: () => void;
+  onDragStart?: (cardId: string, fromColumnId: string) => void;
+  onDragEnd?: () => void;
+  /** When true the card cannot be dragged (used by the read-only tag view). */
+  disableDrag?: boolean;
 }
 
 type DueStatus = 'overdue' | 'today' | 'upcoming';
@@ -44,6 +46,7 @@ export default function Card({
   api,
   onDragStart,
   onDragEnd,
+  disableDrag = false,
 }: CardProps) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(card.title);
@@ -114,18 +117,26 @@ export default function Card({
   return (
     <div
       ref={cardRef}
-      className={`card${isDragging ? ' card--dragging' : ''}`}
+      className={`card${isDragging ? ' card--dragging' : ''}${
+        card.priority ? ' card--priority' : ''
+      }`}
       data-card-id={card.id}
-      draggable={!pickerOpen && !editingDate}
+      draggable={!disableDrag && !pickerOpen && !editingDate}
       onDragStart={(e) => {
+        if (disableDrag) return;
         e.dataTransfer.effectAllowed = 'move';
         e.dataTransfer.setData('text/plain', card.id);
-        onDragStart(card.id, columnId);
+        onDragStart?.(card.id, columnId);
       }}
       onDragEnd={onDragEnd}
     >
-      {cardTags.length > 0 && (
+      {(cardTags.length > 0 || card.priority) && (
         <div className="card__tags">
+          {card.priority && (
+            <span className="card__priority-badge" title="Priority">
+              !!!
+            </span>
+          )}
           {cardTags.map((tag) => (
             <span
               key={tag.id}
@@ -151,6 +162,16 @@ export default function Card({
             onClick={() => setPickerOpen(true)}
           >
             <TagIcon />
+          </button>
+          <button
+            type="button"
+            className={`card__action${card.priority ? ' card__action--priority' : ''}`}
+            aria-label={card.priority ? 'Remove priority' : 'Mark as priority'}
+            aria-pressed={!!card.priority}
+            title="Priority"
+            onClick={() => api.toggleCardPriority(card.id)}
+          >
+            <FlagIcon />
           </button>
           <button
             type="button"
@@ -245,6 +266,14 @@ function TagIcon() {
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M20.59 13.41 13.42 20.58a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82Z" />
       <circle cx="7" cy="7" r="1.2" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+function FlagIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M4 21V4h13l-2 4 2 4H4" />
     </svg>
   );
 }

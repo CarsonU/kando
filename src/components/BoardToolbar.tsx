@@ -1,8 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import type { BoardApi } from '../useBoard';
 
+type ViewMode = 'board' | 'tags';
+
 interface BoardToolbarProps {
   api: BoardApi;
+  viewMode: ViewMode;
+  onViewChange: (mode: ViewMode) => void;
   sortByDue: boolean;
   onToggleSort: () => void;
   filterTagIds: string[];
@@ -13,6 +17,8 @@ interface BoardToolbarProps {
 
 export default function BoardToolbar({
   api,
+  viewMode,
+  onViewChange,
   sortByDue,
   onToggleSort,
   filterTagIds,
@@ -55,6 +61,25 @@ export default function BoardToolbar({
 
   return (
     <div className="app-toolbar">
+      <div className="toolbar-segmented" role="group" aria-label="View">
+        <button
+          type="button"
+          className={`toolbar-segmented__btn${viewMode === 'board' ? ' is-active' : ''}`}
+          aria-pressed={viewMode === 'board'}
+          onClick={() => onViewChange('board')}
+        >
+          Board
+        </button>
+        <button
+          type="button"
+          className={`toolbar-segmented__btn${viewMode === 'tags' ? ' is-active' : ''}`}
+          aria-pressed={viewMode === 'tags'}
+          onClick={() => onViewChange('tags')}
+        >
+          By tag
+        </button>
+      </div>
+
       <button
         type="button"
         className={`toolbar-btn${sortByDue ? ' is-active' : ''}`}
@@ -66,7 +91,11 @@ export default function BoardToolbar({
         Sort by due date
       </button>
 
-      <div className="toolbar-filter" ref={filterRef}>
+      <div
+        className="toolbar-filter"
+        ref={filterRef}
+        hidden={viewMode === 'tags'}
+      >
         <button
           type="button"
           className={`toolbar-btn${activeCount > 0 ? ' is-active' : ''}`}
