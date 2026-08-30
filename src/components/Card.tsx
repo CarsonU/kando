@@ -153,54 +153,6 @@ export default function Card({
         <span className="card__title" onDoubleClick={startEditing}>
           {card.title}
         </span>
-        <div className="card__actions">
-          <button
-            type="button"
-            className="card__action"
-            aria-label="Edit tags"
-            title="Tags"
-            onClick={() => setPickerOpen(true)}
-          >
-            <TagIcon />
-          </button>
-          <button
-            type="button"
-            className={`card__action${card.priority ? ' card__action--priority' : ''}`}
-            aria-label={card.priority ? 'Remove priority' : 'Mark as priority'}
-            aria-pressed={!!card.priority}
-            title="Priority"
-            onClick={() => api.toggleCardPriority(card.id)}
-          >
-            <FlagIcon />
-          </button>
-          <button
-            type="button"
-            className="card__action"
-            aria-label="Set due date"
-            title="Due date"
-            onClick={() => setEditingDate((v) => !v)}
-          >
-            <CalendarIcon />
-          </button>
-          <button
-            type="button"
-            className="card__action"
-            aria-label="Archive card"
-            title="Archive"
-            onClick={() => api.archiveCard(card.id)}
-          >
-            <ArchiveIcon />
-          </button>
-          <button
-            type="button"
-            className="card__action card__action--danger"
-            aria-label="Delete card"
-            title="Delete card"
-            onClick={() => api.deleteCard(card.id)}
-          >
-            &times;
-          </button>
-        </div>
       </div>
 
       {(card.dueDate || editingDate) && (
@@ -245,6 +197,55 @@ export default function Card({
           )}
         </div>
       )}
+
+      <div className="card__actions">
+        <button
+          type="button"
+          className="card__action"
+          aria-label="Edit tags"
+          title="Tags"
+          onClick={() => setPickerOpen(true)}
+        >
+          <TagIcon />
+        </button>
+        <button
+          type="button"
+          className={`card__action${card.priority ? ' card__action--priority' : ''}`}
+          aria-label={card.priority ? 'Remove priority' : 'Mark as priority'}
+          aria-pressed={!!card.priority}
+          title="Priority"
+          onClick={() => api.toggleCardPriority(card.id)}
+        >
+          <FlagIcon />
+        </button>
+        <button
+          type="button"
+          className="card__action"
+          aria-label="Set due date"
+          title="Due date"
+          onClick={() => setEditingDate((v) => !v)}
+        >
+          <CalendarIcon />
+        </button>
+        <button
+          type="button"
+          className="card__action"
+          aria-label="Archive card"
+          title="Archive"
+          onClick={() => api.archiveCard(card.id)}
+        >
+          <ArchiveIcon />
+        </button>
+        <button
+          type="button"
+          className="card__action card__action--danger"
+          aria-label="Delete card"
+          title="Delete card"
+          onClick={() => api.deleteCard(card.id)}
+        >
+          &times;
+        </button>
+      </div>
 
       {pickerOpen && (
         <TagPicker

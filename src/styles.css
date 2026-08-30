@@ -340,10 +340,11 @@ body {
 }
 
 .card__actions {
-  flex: none;
   display: flex;
+  justify-content: flex-end;
   gap: 1px;
-  opacity: 0;
+  margin-top: 1px;
+  opacity: 0.55;
   transition: opacity 0.12s ease;
 }
 
