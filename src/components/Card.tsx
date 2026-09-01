@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import type { Card as CardType } from '../types';
 import type { BoardApi } from '../useBoard';
+import { parseISODate } from '../dateUtils';
 import TagPicker from './TagPicker';
+import DatePicker from './DatePicker';
 
 interface CardProps {
   card: CardType;
@@ -16,12 +18,6 @@ interface CardProps {
 }
 
 type DueStatus = 'overdue' | 'today' | 'upcoming';
-
-/** Local (not UTC) parse of a 'YYYY-MM-DD' string. */
-function parseISODate(iso: string): Date {
-  const [y, m, d] = iso.split('-').map(Number);
-  return new Date(y, m - 1, d);
-}
 
 function dueStatus(iso: string): DueStatus {
   const today = new Date();
@@ -53,7 +49,6 @@ export default function Card({
   const [pickerOpen, setPickerOpen] = useState(false);
   const [editingDate, setEditingDate] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const dateRef = useRef<HTMLInputElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -65,10 +60,6 @@ export default function Card({
       }
     }
   }, [editing]);
-
-  useEffect(() => {
-    if (editingDate) dateRef.current?.focus();
-  }, [editingDate]);
 
   function startEditing() {
     setDraft(card.title);
@@ -155,46 +146,17 @@ export default function Card({
         </span>
       </div>
 
-      {(card.dueDate || editingDate) && (
+      {card.dueDate && (
         <div className="card__footer">
-          {editingDate ? (
-            <div className="card__date-edit">
-              <input
-                ref={dateRef}
-                type="date"
-                className="card__date-input"
-                value={card.dueDate ?? ''}
-                onChange={(e) =>
-                  api.setCardDueDate(card.id, e.target.value ? e.target.value : null)
-                }
-                onBlur={() => setEditingDate(false)}
-              />
-              {card.dueDate && (
-                <button
-                  type="button"
-                  className="card__date-clear"
-                  onClick={() => {
-                    api.setCardDueDate(card.id, null);
-                    setEditingDate(false);
-                  }}
-                >
-                  Clear
-                </button>
-              )}
-            </div>
-          ) : (
-            card.dueDate && (
-              <button
-                type="button"
-                className={`due-pill due-pill--${dueStatus(card.dueDate)}`}
-                title="Edit due date"
-                onClick={() => setEditingDate(true)}
-              >
-                <CalendarIcon />
-                {formatDue(card.dueDate)}
-              </button>
-            )
-          )}
+          <button
+            type="button"
+            className={`due-pill due-pill--${dueStatus(card.dueDate)}`}
+            title="Edit due date"
+            onClick={() => setEditingDate(true)}
+          >
+            <CalendarIcon />
+            {formatDue(card.dueDate)}
+          </button>
         </div>
       )}
 
@@ -223,7 +185,7 @@ export default function Card({
           className="card__action"
           aria-label="Set due date"
           title="Due date"
-          onClick={() => setEditingDate((v) => !v)}
+          onClick={() => setEditingDate(true)}
         >
           <CalendarIcon />
         </button>
@@ -246,6 +208,15 @@ export default function Card({
           &times;
         </button>
       </div>
+
+      {editingDate && (
+        <DatePicker
+          anchorEl={cardRef.current}
+          value={card.dueDate ?? null}
+          onSelect={(iso) => api.setCardDueDate(card.id, iso)}
+          onClose={() => setEditingDate(false)}
+        />
+      )}
 
       {pickerOpen && (
         <TagPicker

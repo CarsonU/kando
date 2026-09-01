@@ -442,37 +442,135 @@ body {
   background: var(--accent-soft);
 }
 
-.card__date-edit {
+/* ------------------------------------------------------------ date picker */
+.date-picker {
+  position: fixed;
+  z-index: 50;
+  padding: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lift);
+  cursor: default;
+}
+
+.date-picker__heading {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-faint);
+  margin-bottom: 8px;
+}
+
+.date-picker__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.date-picker__option {
+  width: 100%;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 8px;
+  font: inherit;
+  font-size: 0.82rem;
+  color: var(--text);
+  background: none;
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s ease;
+}
+
+.date-picker__option:hover {
+  background: var(--surface-hover);
+}
+
+.date-picker__option.is-selected {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+.date-picker__weekday {
+  font-weight: 600;
+}
+
+.date-picker__date {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.date-picker__option.is-selected .date-picker__date {
+  color: inherit;
+}
+
+.date-picker__footer {
   display: flex;
   align-items: center;
   gap: 6px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
 }
 
-.card__date-input {
+.date-picker__calendar {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
   font: inherit;
-  font-size: 0.76rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: color 0.12s ease, background 0.12s ease;
+}
+
+.date-picker__calendar:hover {
+  color: var(--text);
+  background: var(--surface-hover);
+}
+
+.date-picker__input {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  font-size: 0.78rem;
   color: var(--text);
   background: var(--surface);
   border: 1px solid var(--accent);
   border-radius: 7px;
-  padding: 3px 6px;
+  padding: 4px 6px;
   outline: none;
   color-scheme: light dark;
 }
 
-.card__date-clear {
+.date-picker__clear {
   font: inherit;
-  font-size: 0.72rem;
+  font-size: 0.74rem;
   font-weight: 500;
   color: var(--text-muted);
   background: none;
   border: none;
   cursor: pointer;
-  padding: 2px 4px;
+  padding: 4px 6px;
   border-radius: 6px;
 }
 
-.card__date-clear:hover {
+.date-picker__clear:hover {
   color: var(--danger);
   background: var(--surface-hover);
 }
