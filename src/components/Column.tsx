@@ -14,6 +14,8 @@ interface ColumnProps {
   api: BoardApi;
   sortByDue: boolean;
   filterTagIds: string[];
+  collapsed: boolean;
+  onToggleCollapse: (columnId: string) => void;
   dragging: DragSource | null;
   dropTarget: DropTarget | null;
   setDropTarget: (target: DropTarget | null) => void;
@@ -29,6 +31,8 @@ export default function Column({
   api,
   sortByDue,
   filterTagIds,
+  collapsed,
+  onToggleCollapse,
   dragging,
   dropTarget,
   setDropTarget,
@@ -98,6 +102,14 @@ export default function Column({
     if (!dragging) return;
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
+    // Collapsed columns show no cards to measure, so the card always appends to
+    // the end; just flag the column as the drop target for the highlight.
+    if (collapsed) {
+      if (dropTarget?.columnId !== column.id) {
+        setDropTarget({ columnId: column.id, index: column.cardIds.length });
+      }
+      return;
+    }
     const index = computeIndex(e.clientY);
     if (dropTarget?.columnId !== column.id || dropTarget.index !== index) {
       setDropTarget({ columnId: column.id, index });
@@ -107,6 +119,11 @@ export default function Column({
   function handleDrop(e: React.DragEvent) {
     if (!dragging) return;
     e.preventDefault();
+    if (collapsed) {
+      api.moveCard(dragging.cardId, column.id, column.cardIds.length);
+      onCardDragEnd();
+      return;
+    }
     // computeIndex is relative to the visible list; translate it back to an
     // index into the full cardIds array so filtering/sorting can't misplace the
     // card, by locating the visible card it should land in front of.
@@ -147,6 +164,54 @@ export default function Column({
 
   const dropIndicator = <div className="drop-indicator" aria-hidden="true" />;
 
+  if (collapsed) {
+    return (
+      <section
+        className={`column column--collapsed${isDropCol ? ' column--drop' : ''}${
+          isColumnDragging ? ' column--dragging' : ''
+        }`}
+        data-column-id={column.id}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+      >
+        <div
+          className="column__grip"
+          draggable
+          role="button"
+          aria-label="Drag to reorder column"
+          title="Drag to reorder"
+          onDragStart={(e) => {
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', column.id);
+            onColumnDragStart(column.id);
+          }}
+          onDragEnd={onColumnDragEnd}
+        >
+          <GripIcon />
+        </div>
+        <button
+          type="button"
+          className="column__collapse"
+          aria-label="Expand column"
+          aria-expanded={false}
+          title="Expand column"
+          onClick={() => onToggleCollapse(column.id)}
+        >
+          <ChevronIcon direction="right" />
+        </button>
+        <button
+          type="button"
+          className="column__rail-title"
+          title="Expand column"
+          onClick={() => onToggleCollapse(column.id)}
+        >
+          {column.title}
+        </button>
+        <span className="column__count">{visibleIds.length}</span>
+      </section>
+    );
+  }
+
   return (
     <section
       className={`column${isDropCol ? ' column--drop' : ''}${
@@ -172,6 +237,16 @@ export default function Column({
         >
           <GripIcon />
         </div>
+        <button
+          type="button"
+          className="column__collapse"
+          aria-label="Collapse column"
+          aria-expanded={true}
+          title="Collapse column"
+          onClick={() => onToggleCollapse(column.id)}
+        >
+          <ChevronIcon direction="left" />
+        </button>
         {renaming ? (
           <input
             ref={renameRef}
@@ -279,6 +354,14 @@ export default function Column({
         </button>
       )}
     </section>
+  );
+}
+
+function ChevronIcon({ direction }: { direction: 'left' | 'right' }) {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d={direction === 'left' ? 'M15 18l-6-6 6-6' : 'M9 18l6-6-6-6'} />
+    </svg>
   );
 }
 

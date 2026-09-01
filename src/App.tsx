@@ -5,6 +5,7 @@ import BoardToolbar from './components/BoardToolbar';
 import Settings from './components/Settings';
 import Archive from './components/Archive';
 import { useBoard, type SyncStatus } from './useBoard';
+import { useCollapsedColumns } from './useCollapsedColumns';
 
 const STATUS_LABEL: Record<SyncStatus, string> = {
   connecting: 'connecting…',
@@ -23,6 +24,9 @@ export default function App() {
   const [viewMode, setViewMode] = useState<'board' | 'tags'>('board');
   const [sortByDue, setSortByDue] = useState(false);
   const [filterTagIds, setFilterTagIds] = useState<string[]>([]);
+
+  // Per-device (not synced) collapsed columns, persisted in localStorage.
+  const { collapsed: collapsedColumns, toggle: onToggleCollapse } = useCollapsedColumns();
 
   const allCards = Object.values(api.state.cards);
   const cardCount = allCards.filter((c) => !c.archivedAt).length;
@@ -66,7 +70,13 @@ export default function App() {
       />
       <main className="app-main">
         {viewMode === 'board' ? (
-          <Board api={api} sortByDue={sortByDue} filterTagIds={filterTagIds} />
+          <Board
+            api={api}
+            sortByDue={sortByDue}
+            filterTagIds={filterTagIds}
+            collapsedColumns={collapsedColumns}
+            onToggleCollapse={onToggleCollapse}
+          />
         ) : (
           <TagBoard api={api} sortByDue={sortByDue} />
         )}

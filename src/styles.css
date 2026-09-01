@@ -274,6 +274,61 @@ body {
   background: var(--surface-hover);
 }
 
+.column__collapse {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-faint);
+  background: none;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: color 0.12s ease, background 0.12s ease;
+}
+
+.column__collapse:hover {
+  color: var(--text);
+  background: var(--surface-hover);
+}
+
+/* ------------------------------------------------------- collapsed column */
+.column--collapsed {
+  width: 46px;
+  align-items: center;
+  padding: 10px 0;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.column--collapsed .column__grip {
+  cursor: grab;
+}
+
+.column__rail-title {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  max-height: min(60vh, 320px);
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.9rem;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  background: none;
+  border: none;
+  padding: 6px 0;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.column__rail-title:hover {
+  color: var(--accent-strong);
+}
+
 .column__list {
   flex: 1;
   min-height: 8px;

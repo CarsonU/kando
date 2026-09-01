@@ -12,9 +12,17 @@ interface BoardProps {
   api: BoardApi;
   sortByDue: boolean;
   filterTagIds: string[];
+  collapsedColumns: Set<string>;
+  onToggleCollapse: (columnId: string) => void;
 }
 
-export default function Board({ api, sortByDue, filterTagIds }: BoardProps) {
+export default function Board({
+  api,
+  sortByDue,
+  filterTagIds,
+  collapsedColumns,
+  onToggleCollapse,
+}: BoardProps) {
   // Card drag context (moving cards within/between columns).
   const [dragging, setDragging] = useState<DragSource | null>(null);
   const [dropTarget, setDropTarget] = useState<DropTarget | null>(null);
@@ -92,6 +100,8 @@ export default function Board({ api, sortByDue, filterTagIds }: BoardProps) {
             api={api}
             sortByDue={sortByDue}
             filterTagIds={filterTagIds}
+            collapsed={collapsedColumns.has(column.id)}
+            onToggleCollapse={onToggleCollapse}
             dragging={dragging}
             dropTarget={dropTarget}
             setDropTarget={setDropTarget}
