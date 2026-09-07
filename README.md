@@ -50,6 +50,23 @@ docker compose up --build web
 Then open http://localhost:8080 from any device that can reach the host. nginx serves
 the static app and proxies `/api` to the backend.
 
+**Changing the port** — if `8080` (or `5173` in dev) is already taken on your host,
+set the port before starting. Compose reads a `.env` file automatically, so copy the
+example and edit it:
+
+```bash
+cp .env.example .env      # then set WEB_PORT / DEV_PORT
+```
+
+or pass it inline for a single run:
+
+```bash
+WEB_PORT=9000 docker compose up --build web
+```
+
+Only the host port changes; nginx still listens on 80 inside the container, so nothing
+else needs adjusting.
+
 The board is persisted to a named Docker volume (`kando-data`), so it survives restarts.
 Stop the containers (keeping your data) with:
 

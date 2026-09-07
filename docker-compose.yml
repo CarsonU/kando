@@ -20,7 +20,9 @@ services:
     depends_on:
       - server
     ports:
-      - "5173:5173"
+      # Host port is configurable (set DEV_PORT to avoid conflicts); the
+      # in-container port stays 5173.
+      - "${DEV_PORT:-5173}:5173"
     volumes:
       - .:/app
       # Keep the image's node_modules; don't let the host mount shadow it.
@@ -40,7 +42,9 @@ services:
     depends_on:
       - server
     ports:
-      - "8080:80"
+      # Host port is configurable (set WEB_PORT to avoid conflicts on a shared
+      # host); nginx still listens on 80 inside the container.
+      - "${WEB_PORT:-8080}:80"
     restart: unless-stopped
 
 volumes:
